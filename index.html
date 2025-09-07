@@ -289,25 +289,29 @@
         }
         
         .remove-button {
-            background: #dc3545;
-            color: white;
+            background: #ffc107;
+            color: #212529;
             border: none;
-            border-radius: 3px;
-            padding: 2px 6px;
-            font-size: 0.7em;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.75em;
             cursor: pointer;
             margin-left: 5px;
             transition: all 0.2s ease;
-            font-weight: 500;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .remove-button:hover {
-            background: #c82333;
-            transform: scale(1.05);
+            background: #ffca2c;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.4);
         }
         
         .remove-button:active {
-            transform: scale(0.95);
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(255, 193, 7, 0.4);
         }
         
         .wallet-address-container {
@@ -325,7 +329,7 @@
         }
         
         .actions-column {
-            width: 80px;
+            width: 90px;
             text-align: center;
         }
     </style>
@@ -561,7 +565,7 @@ Example:
                         <span class="total-value">${parseFloat(totalValue.toFixed(2))} MON</span>
                     </td>
                     <td class="actions-column">
-                        <button class="remove-button" onclick="removeContractAddress('${collection.primaryContract}')" title="Skip this collection contract">×</button>
+                        <button class="remove-button" onclick="removeContractAddress('${collection.primaryContract}')" title="Skip this collection contract">Skip</button>
                     </td>
                 `;
                 

@@ -444,6 +444,7 @@ Example:
 
         function aggregateData() {
             const aggregatedCollections = new Map();
+            const autoSkippedCollections = [];
 
             // Process each wallet's collections
             for (const [walletAddress, collections] of Object.entries(collectionData)) {
@@ -469,6 +470,32 @@ Example:
                     agg.totalQuantity += parseInt(ownership.tokenCount) || 0;
                     agg.wallets.add(walletAddress);
                 }
+            }
+
+            // Check for collections with quantity > 100,000 and auto-skip them
+            const collectionsToRemove = [];
+            for (const [collectionId, data] of aggregatedCollections.entries()) {
+                if (data.totalQuantity > 100000) {
+                    const contractAddress = data.collection.primaryContract;
+                    if (!skipContractAddresses.map(addr => addr.toLowerCase()).includes(contractAddress.toLowerCase())) {
+                        skipContractAddresses.push(contractAddress);
+                        autoSkippedCollections.push({
+                            name: data.collection.name || 'Unnamed Collection',
+                            contract: contractAddress,
+                            quantity: data.totalQuantity
+                        });
+                    }
+                    collectionsToRemove.push(collectionId);
+                }
+            }
+
+            // Remove auto-skipped collections from results
+            collectionsToRemove.forEach(id => aggregatedCollections.delete(id));
+
+            // Update skip textarea and show notification if any collections were auto-skipped
+            if (autoSkippedCollections.length > 0) {
+                updateSkipTextarea();
+                showAutoSkipNotification(autoSkippedCollections);
             }
 
             return Array.from(aggregatedCollections.values());
@@ -641,6 +668,24 @@ Example:
             skipTextarea.addEventListener('keydown', handleKeydown);
         }
         
+        function updateSkipTextarea() {
+            const skipTextarea = document.getElementById('skipContractAddresses');
+            skipTextarea.value = skipContractAddresses.join('\n');
+            updateInputCounts();
+        }
+
+        function showAutoSkipNotification(autoSkippedCollections) {
+            // Create notification message
+            const collectionList = autoSkippedCollections.map(col => 
+                `• ${col.name} (${col.quantity.toLocaleString()} tokens)`
+            ).join('\n');
+            
+            const message = `Auto-skipped ${autoSkippedCollections.length} collection(s) with quantities over 100,000:\n\n${collectionList}\n\nThese have been added to the skip list.`;
+            
+            // Show alert for now - could be enhanced with a custom notification UI later
+            alert(message);
+        }
+
         function updateInputCounts() {
             const walletTextarea = document.getElementById('walletAddresses');
             const skipTextarea = document.getElementById('skipContractAddresses');
@@ -662,10 +707,7 @@ Example:
                 }
                 
                 // Update the skip textarea
-                document.getElementById('skipContractAddresses').value = skipContractAddresses.join('\n');
-                
-                // Update counts
-                updateInputCounts();
+                updateSkipTextarea();
                 
                 // Reload data to apply the skip filter
                 if (walletAddresses.length > 0) {

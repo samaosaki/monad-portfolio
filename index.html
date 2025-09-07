@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monad NFT Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            padding: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        
+        tr:hover {
+            background-color: #f8f9ff;
+        }
+        
+        .collection-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid #eee;
+        }
+        
+        .placeholder-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            border: 2px solid #eee;
+            background: #f5f5f5;
+            display: inline-block;
+        }
+        
+        .magiceden-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .magiceden-icon:hover {
+            transform: scale(1.1);
+        }
+        
+        .collection-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .wallet-address {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            color: #666;
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 2px;
+            display: inline-block;
+        }
+        
+        .price {
+            font-weight: 600;
+            color: #28a745;
+        }
+        
+        .total-value {
+            font-weight: 700;
+            color: #007bff;
+            font-size: 1.1em;
+        }
+        
+        .quantity {
+            font-weight: 600;
+            color: #6c757d;
+        }
+        
+        .error {
+            color: #dc3545;
+            font-style: italic;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .wallet-input-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .input-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        #walletAddresses, #skipContractAddresses {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+        }
+        
+        #walletAddresses:focus, #skipContractAddresses:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .go-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .go-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .go-button:active {
+            transform: translateY(0);
+        }
+        
+        .current-wallets {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .powered-by {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+        
+        .powered-by a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .powered-by a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Monad NFT Dashboard</h1>
+            <p>Tracking NFT collections across multiple wallets on Monad Testnet</p>
+        </div>
+        
+        <div class="wallet-input-section">
+            <div class="input-container">
+                <div class="input-group">
+                    <label class="input-label" for="walletAddresses">Wallet Addresses</label>
+                    <textarea id="walletAddresses" placeholder="Enter wallet addresses (one per line)
+Example:
+0x1234567890abcdef1234567890abcdef12345678
+0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" rows="6"></textarea>
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="skipContractAddresses">Skip Contract Addresses (Optional)</label>
+                    <textarea id="skipContractAddresses" placeholder="Enter contract addresses to skip (one per line)
+Example:
+0x57767bd10ddaee70f382b0c20f78d9194948a08b
+0x376faae4c57156c73c1333990e5f5929cd982b40" rows="6"></textarea>
+                </div>
+                <button id="goButton" class="go-button">Go</button>
+            </div>
+            <div class="current-wallets">
+                <strong>Current wallets:</strong> <span id="walletCount">0</span> | 
+                <strong>Skip addresses:</strong> <span id="skipCount">0</span>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading NFT collections...</p>
+        </div>
+        
+        <div id="content" style="display: none;">
+            <div class="stats" id="stats">
+                <!-- Stats will be populated here -->
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Collection</th>
+                            <th>Magic Eden</th>
+                            <th>Total Quantity</th>
+                            <th>Wallet Addresses</th>
+                            <th>Floor Price (MON)</th>
+                            <th>Total Value (MON)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Table content will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="powered-by">
+            Powered by <a href="https://magiceden.io" target="_blank">Magic Eden</a>
+        </div>
+    </div>
+
+    <script>
+        let walletAddresses = [];
+        let skipContractAddresses = [];
+
+        const baseUrl = "https://api-mainnet.magiceden.dev/v3/rtp/monad-testnet/users/";
+        const baseQueryParams = "?includeTopBid=false&includeLiquidCount=false";
+
+        // Store aggregated data
+        const collectionData = new Map();
+        let totalCollections = 0;
+        let totalValue = 0;
+        let totalTokens = 0;
+
+        async function fetchWalletData(walletAddress) {
+            const allCollections = [];
+            const limit = 100;
+            let offset = 0;
+            try {
+                while (true) {
+                    const url = `${baseUrl}${walletAddress}/collections/v3${baseQueryParams}&offset=${offset}&limit=${limit}`;
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    const pageCollections = data.collections || [];
+                    if (pageCollections.length === 0) {
+                        break;
+                    }
+                    allCollections.push(...pageCollections);
+                    if (pageCollections.length < limit) {
+                        break;
+                    }
+                    offset += limit;
+                }
+                return allCollections;
+            } catch (error) {
+                console.error(`Error fetching data for wallet ${walletAddress}:`, error);
+                return allCollections; // return what we have so far
+            }
+        }
+
+        function aggregateData() {
+            const aggregatedCollections = new Map();
+
+            // Process each wallet's collections
+            for (const [walletAddress, collections] of Object.entries(collectionData)) {
+                for (const item of collections) {
+                    const collection = item.collection;
+                    const ownership = item.ownership;
+                    
+                    // Skip the specified contract addresses (convert to lowercase for comparison)
+                    if (skipContractAddresses.map(addr => addr.toLowerCase()).includes(collection.primaryContract.toLowerCase())) {
+                        continue;
+                    }
+                    
+                    if (!aggregatedCollections.has(collection.id)) {
+                        aggregatedCollections.set(collection.id, {
+                            collection: collection,
+                            totalQuantity: 0,
+                            wallets: new Set(),
+                            floorPrice: collection.floorAskPrice?.amount?.native || 0
+                        });
+                    }
+                    
+                    const agg = aggregatedCollections.get(collection.id);
+                    agg.totalQuantity += parseInt(ownership.tokenCount) || 0;
+                    agg.wallets.add(walletAddress);
+                }
+            }
+
+            return Array.from(aggregatedCollections.values());
+        }
+
+        function updateStats() {
+            const statsDiv = document.getElementById('stats');
+            statsDiv.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${walletAddresses.length}</div>
+                    <div class="stat-label">Wallets</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${totalCollections}</div>
+                    <div class="stat-label">Collections</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${totalTokens.toLocaleString()}</div>
+                    <div class="stat-label">Total Tokens</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${totalValue.toFixed(2)} MON</div>
+                    <div class="stat-label">Total Value</div>
+                </div>
+            `;
+        }
+
+        function renderTable(aggregatedData) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            // Sort aggregatedData by total value (high to low)
+            const sortedData = aggregatedData.sort((a, b) => {
+                const valueA = a.totalQuantity * a.floorPrice;
+                const valueB = b.totalQuantity * b.floorPrice;
+                return valueB - valueA; // High to low
+            });
+
+            sortedData.forEach(item => {
+                const collection = item.collection;
+                const totalValue = item.totalQuantity * item.floorPrice;
+                
+                // Custom image for specific collection address
+                let imageUrl = (collection.image && collection.image.trim()) || null;
+                if (collection.primaryContract === '0x46c66c40711a2953d1768926e53134c7ab272cd5') {
+                    imageUrl = 'https://img-cdn.magiceden.dev/rs:fill:400:0:0/plain/https%3A%2F%2Fimg.reservoir.tools%2Fimages%2Fv2%2Fmonad-testnet%2Fi9YO%252F4yHXUdJsWcTqhqvf9a39%252FcEoEcwFg9osliSM37qoAKUaf49H6HUkQkKr7pqxjw4z%252B3YvLr06Xl4LWRTbnTobVwd6ZYy22hR8SSy9rbpmS3bA%252Fhni%252BbhiOx2wf8R.mp4';
+                }
+                if (collection.primaryContract === '0xd20ef03e432208af083c0fb4e401049f4f29949f') {
+                    imageUrl = 'https://img-cdn.magiceden.dev/rs:fill:400:0:0/plain/https%3A%2F%2Fimg.reservoir.tools%2Fimages%2Fv2%2Fmonad-testnet%2Fi9YO%252F4yHXUdJsWcTqhqvf%252B6U1rlpeVvAv%252Fzkq3fwwgmZeO0COS6JI8j0SWaaAHEdLrYzFxbmlDIpRaHXwELY6gPq9sjb4VRnlBOtBzmPn1ZXvwVMkZxkvWbIOviW8YKk.mp4';
+                }
+
+                const hasMedia = typeof imageUrl === 'string' && imageUrl.length > 0;
+                const isVideo = hasMedia && imageUrl.toLowerCase().endsWith('.mp4');
+                const placeholderElement = `<div class="placeholder-box"></div>`;
+                const mediaElement = hasMedia
+                    ? (isVideo
+                        ? `<video src="${imageUrl}" class="collection-image" muted autoplay loop playsinline onerror="this.outerHTML='\x3Cdiv class=\\'placeholder-box\\'\x3E\x3C/div\x3E'"></video>`
+                        : `<img src="${imageUrl}" alt="${collection.name}" class="collection-image" onerror="this.outerHTML='\x3Cdiv class=\\'placeholder-box\\'\x3E\x3C/div\x3E'">`)
+                    : placeholderElement;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            ${mediaElement}
+                            <div>
+                                <div class="collection-name">${collection.name || 'Unnamed Collection'}</div>
+                                <div style="font-size: 0.8em; color: #666;">${collection.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="https://magiceden.io/collections/monad-testnet/${collection.primaryContract}" 
+                           target="_blank" title="View on Magic Eden">
+                            <img src="https://magiceden.io/img/favicon/android-chrome-192x192.png" 
+                                 alt="Magic Eden" 
+                                 class="magiceden-icon">
+                        </a>
+                    </td>
+                    <td>
+                        <span class="quantity">${item.totalQuantity.toLocaleString()}</span>
+                    </td>
+                    <td>
+                        <div style="max-width: 300px;">
+                            ${Array.from(item.wallets).map(wallet => 
+                                `<span class="wallet-address">${wallet}</span>`
+                            ).join('')}
+                        </div>
+                    </td>
+                    <td style="padding-left: 30px;">
+                        <span class="price">${parseFloat(item.floorPrice.toFixed(6))} MON</span>
+                    </td>
+                    <td>
+                        <span class="total-value">${parseFloat(totalValue.toFixed(2))} MON</span>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function loadAllData() {
+            const loadingDiv = document.getElementById('loading');
+            const contentDiv = document.getElementById('content');
+            
+            try {
+                // Clear existing collection data
+                Object.keys(collectionData).forEach(key => delete collectionData[key]);
+                
+                // Fetch data for all wallets
+                const promises = walletAddresses.map(async (walletAddress) => {
+                    const collections = await fetchWalletData(walletAddress);
+                    collectionData[walletAddress] = collections;
+                });
+
+                await Promise.all(promises);
+
+                // Aggregate and process data
+                const aggregatedData = aggregateData();
+                
+                // Calculate totals
+                totalCollections = aggregatedData.length;
+                totalTokens = aggregatedData.reduce((sum, item) => sum + item.totalQuantity, 0);
+                totalValue = aggregatedData.reduce((sum, item) => sum + (item.totalQuantity * item.floorPrice), 0);
+
+                // Update UI
+                updateStats();
+                renderTable(aggregatedData);
+                
+                // Show content
+                loadingDiv.style.display = 'none';
+                contentDiv.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                loadingDiv.innerHTML = '<p class="error">Error loading data. Please try again.</p>';
+            }
+        }
+
+        function initializeWalletInput() {
+            const walletTextarea = document.getElementById('walletAddresses');
+            const skipTextarea = document.getElementById('skipContractAddresses');
+            const goButton = document.getElementById('goButton');
+            
+            // Set initial values
+            walletTextarea.value = walletAddresses.join('\n');
+            
+            // Set default skip contract addresses
+            const defaultSkipAddresses = [];
+            skipTextarea.value = defaultSkipAddresses.join('\n');
+            skipContractAddresses = [...defaultSkipAddresses];
+            
+            updateInputCounts();
+            
+            // Add event listeners
+            goButton.addEventListener('click', handleGoClick);
+            walletTextarea.addEventListener('input', updateInputCounts);
+            skipTextarea.addEventListener('input', updateInputCounts);
+            
+            // Add Enter key support (Ctrl+Enter to submit)
+            const handleKeydown = (e) => {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    handleGoClick();
+                }
+            };
+            walletTextarea.addEventListener('keydown', handleKeydown);
+            skipTextarea.addEventListener('keydown', handleKeydown);
+        }
+        
+        function updateInputCounts() {
+            const walletTextarea = document.getElementById('walletAddresses');
+            const skipTextarea = document.getElementById('skipContractAddresses');
+            const walletCount = document.getElementById('walletCount');
+            const skipCount = document.getElementById('skipCount');
+            
+            const walletAddresses = walletTextarea.value.split('\n').filter(addr => addr.trim() !== '');
+            const skipAddresses = skipTextarea.value.split('\n').filter(addr => addr.trim() !== '');
+            
+            walletCount.textContent = walletAddresses.length;
+            skipCount.textContent = skipAddresses.length;
+        }
+        
+        function handleGoClick() {
+            const walletTextarea = document.getElementById('walletAddresses');
+            const skipTextarea = document.getElementById('skipContractAddresses');
+            
+            const addresses = walletTextarea.value.split('\n')
+                .map(addr => addr.trim())
+                .filter(addr => addr !== '');
+                
+            const skipAddresses = skipTextarea.value.split('\n')
+                .map(addr => addr.trim())
+                .filter(addr => addr !== '');
+            
+            if (addresses.length === 0) {
+                alert('Please enter at least one wallet address');
+                return;
+            }
+            
+            // Clear existing data
+            collectionData.clear();
+            totalCollections = 0;
+            totalValue = 0;
+            totalTokens = 0;
+            
+            // Clear table and stats
+            document.getElementById('tableBody').innerHTML = '';
+            document.getElementById('stats').innerHTML = '';
+            
+            // Show loading state
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            
+            // Update addresses and reload data
+            walletAddresses = addresses;
+            skipContractAddresses = skipAddresses;
+            loadAllData();
+        }
+        
+        // Start loading data when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeWalletInput();
+            loadAllData();
+        });
+    </script>
+</body>
+</html> 

@@ -287,6 +287,47 @@
         .powered-by a:hover {
             text-decoration: underline;
         }
+        
+        .remove-button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 0.7em;
+            cursor: pointer;
+            margin-left: 5px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .remove-button:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+        
+        .remove-button:active {
+            transform: scale(0.95);
+        }
+        
+        .wallet-address-container {
+            display: inline-flex;
+            align-items: center;
+            margin: 2px;
+            max-width: 100%;
+            flex-wrap: nowrap;
+        }
+        
+        .wallet-addresses-cell {
+            max-width: 280px;
+            word-break: break-all;
+            overflow: hidden;
+        }
+        
+        .actions-column {
+            width: 80px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -340,6 +381,7 @@ Example:
                             <th>Wallet Addresses</th>
                             <th>Floor Price</th>
                             <th>Total Value</th>
+                            <th class="actions-column">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -506,7 +548,7 @@ Example:
                         <span class="quantity">${item.totalQuantity.toLocaleString()}</span>
                     </td>
                     <td>
-                        <div style="max-width: 300px;">
+                        <div class="wallet-addresses-cell">
                             ${Array.from(item.wallets).map(wallet => 
                                 `<span class="wallet-address">${wallet}</span>`
                             ).join('')}
@@ -517,6 +559,9 @@ Example:
                     </td>
                     <td>
                         <span class="total-value">${parseFloat(totalValue.toFixed(2))} MON</span>
+                    </td>
+                    <td class="actions-column">
+                        <button class="remove-button" onclick="removeContractAddress('${collection.primaryContract}')" title="Skip this collection contract">×</button>
                     </td>
                 `;
                 
@@ -603,6 +648,41 @@ Example:
             
             walletCount.textContent = walletAddresses.length;
             skipCount.textContent = skipAddresses.length;
+        }
+        
+        function removeContractAddress(contractToSkip) {
+            if (confirm(`Skip collection contract ${contractToSkip}?`)) {
+                // Add to skip list if not already there
+                if (!skipContractAddresses.includes(contractToSkip)) {
+                    skipContractAddresses.push(contractToSkip);
+                }
+                
+                // Update the skip textarea
+                document.getElementById('skipContractAddresses').value = skipContractAddresses.join('\n');
+                
+                // Update counts
+                updateInputCounts();
+                
+                // Reload data to apply the skip filter
+                if (walletAddresses.length > 0) {
+                    // Clear existing data
+                    Object.keys(collectionData).forEach(key => delete collectionData[key]);
+                    totalCollections = 0;
+                    totalValue = 0;
+                    totalTokens = 0;
+                    
+                    // Clear table and stats
+                    document.getElementById('tableBody').innerHTML = '';
+                    document.getElementById('stats').innerHTML = '';
+                    
+                    // Show loading state
+                    document.getElementById('loading').style.display = 'block';
+                    document.getElementById('content').style.display = 'none';
+                    
+                    // Reload data
+                    loadAllData();
+                }
+            }
         }
         
         function handleGoClick() {

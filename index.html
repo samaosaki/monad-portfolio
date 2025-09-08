@@ -332,9 +332,112 @@
             width: 90px;
             text-align: center;
         }
+        
+        /* Mobile-only screen styles */
+        .mobile-only-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #6a1b9a 0%, #8e24aa 25%, #ab47bc 50%, #ba68c8 75%, #ce93d8 100%);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .mobile-screen-content {
+            color: white;
+            max-width: 350px;
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        .mobile-screen-icon {
+            font-size: 4rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .mobile-screen-title {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .mobile-screen-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+        
+        .mobile-screen-message {
+            font-size: 1rem;
+            opacity: 0.8;
+            line-height: 1.5;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Media queries for mobile detection */
+        @media only screen and (max-width: 768px) {
+            .mobile-only-screen {
+                display: flex;
+            }
+            
+            .container {
+                display: none;
+            }
+        }
+        
+        @media only screen and (max-device-width: 768px) {
+            .mobile-only-screen {
+                display: flex;
+            }
+            
+            .container {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Mobile-only screen -->
+    <div class="mobile-only-screen">
+        <div class="mobile-screen-content">
+            <div class="mobile-screen-icon">
+                <img src="favicon.ico" alt="Monad NFT Dashboard" style="width:48px;height:48px;display:block;margin:0 auto;">
+            </div>
+            <h1 class="mobile-screen-title">Monad NFT Dashboard</h1>
+            <p class="mobile-screen-subtitle">Works best on desktop</p>
+            <div class="mobile-screen-message">
+                <p><strong>📱 Mobile version coming soon!</strong></p>
+                <p>For the best experience, please visit this dashboard on a desktop or laptop computer.</p>
+                <p>We're working on a mobile-optimized version that will be available soon.</p>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>Monad NFT Dashboard</h1>

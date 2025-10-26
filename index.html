@@ -124,17 +124,6 @@
             display: inline-block;
         }
         
-        .magiceden-icon {
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .magiceden-icon:hover {
-            transform: scale(1.1);
-        }
-        
         .collection-name {
             font-weight: 600;
             color: #333;
@@ -288,31 +277,6 @@
             text-decoration: underline;
         }
         
-        .remove-button {
-            background: #ffc107;
-            color: #212529;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 0.75em;
-            cursor: pointer;
-            margin-left: 5px;
-            transition: all 0.2s ease;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .remove-button:hover {
-            background: #ffca2c;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.4);
-        }
-        
-        .remove-button:active {
-            transform: translateY(0);
-            box-shadow: 0 1px 2px rgba(255, 193, 7, 0.4);
-        }
         
         .wallet-address-container {
             display: inline-flex;
@@ -328,10 +292,18 @@
             overflow: hidden;
         }
         
-        .actions-column {
-            width: 90px;
-            text-align: center;
+        .poply-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-radius: 4px;
         }
+        
+        .poply-icon:hover {
+            transform: scale(1.1);
+        }
+        
         
         /* Mobile-only screen styles */
         .mobile-only-screen {
@@ -483,12 +455,11 @@ Example:
                     <thead>
                         <tr>
                             <th>Collection</th>
-                            <th>Magic Eden</th>
-                            <th>Total Quantity</th>
+                            <th>Poply</th>
+                            <th>#</th>
                             <th>Wallet Addresses</th>
                             <th>Floor Price</th>
                             <th>Total Value</th>
-                            <th class="actions-column">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -499,12 +470,18 @@ Example:
         </div>
         
         <div class="powered-by">
-            Powered by <a href="https://magiceden.io" target="_blank">Magic Eden</a>
+            Powered by <a href="https://poply.xyz" target="_blank">Poply</a>
         </div>
     </div>
 
     <script>
-        let walletAddresses = [];
+        let walletAddresses = [
+            "0x792eDb670693216b52d9d558C1b40Ae93d607056",
+            "0x10320fea92ff1D32bf0B68cf4b9e43d2FAc2c399",
+            "0x57a5e9b79fd1A538f1F0d3D7549b4675b306adC8",
+            "0x247a3540B178Bb0784ceF88043b38E993A210dbE",
+            "0x58F54DDfe9cfAE89de4E316136240422C04EC09C"
+        ];
         let skipContractAddresses = [];
 
         const baseUrl = "https://api-mainnet.magiceden.dev/v3/rtp/monad-testnet/users/";
@@ -671,11 +648,12 @@ Example:
                         </div>
                     </td>
                     <td>
-                        <a href="https://magiceden.io/collections/monad-testnet/${collection.primaryContract}" 
-                           target="_blank" title="View on Magic Eden">
-                            <img src="android-chrome-192x192.png" 
-                                 alt="Magic Eden" 
-                                 class="magiceden-icon">
+                        <a href="https://poply.xyz/collection/${collection.primaryContract}" 
+                           target="_blank" title="View on Poply">
+                            <img src="https://poply.xyz/favicon.ico" 
+                                 alt="Poply" 
+                                 class="poply-icon"
+                                 onerror="this.style.display='none'">
                         </a>
                     </td>
                     <td>
@@ -693,9 +671,6 @@ Example:
                     </td>
                     <td>
                         <span class="total-value">${parseFloat(totalValue.toFixed(2))} MON</span>
-                    </td>
-                    <td class="actions-column">
-                        <button class="remove-button" onclick="removeContractAddress('${collection.primaryContract}')" title="Skip this collection contract">Skip</button>
                     </td>
                 `;
                 
@@ -750,7 +725,14 @@ Example:
             walletTextarea.value = walletAddresses.join('\n');
             
             // Set default skip contract addresses
-            const defaultSkipAddresses = [];
+            const defaultSkipAddresses = [
+                "0x57767bd10ddaee70f382b0c20f78d9194948a08b",
+                "0x376faae4c57156c73c1333990e5f5929cd982b40",
+                "0x57f64b5d487f990ad536cb697cf6feb9db1bdf78",
+                "0xc6ec6ec1a6d81590bfa05f2a7f0f192b9e759492",
+                "0xdd3353c066d57b60381b24cbc0e6b85e5de46f8b",
+                "0x71efaeba32c128512422615ab0dbccceaffe8fa0"
+            ];
             skipTextarea.value = defaultSkipAddresses.join('\n');
             skipContractAddresses = [...defaultSkipAddresses];
             
@@ -802,37 +784,6 @@ Example:
             skipCount.textContent = skipAddresses.length;
         }
         
-        function removeContractAddress(contractToSkip) {
-            if (confirm(`Skip collection contract ${contractToSkip}?`)) {
-                // Add to skip list if not already there
-                if (!skipContractAddresses.includes(contractToSkip)) {
-                    skipContractAddresses.push(contractToSkip);
-                }
-                
-                // Update the skip textarea
-                updateSkipTextarea();
-                
-                // Reload data to apply the skip filter
-                if (walletAddresses.length > 0) {
-                    // Clear existing data
-                    Object.keys(collectionData).forEach(key => delete collectionData[key]);
-                    totalCollections = 0;
-                    totalValue = 0;
-                    totalTokens = 0;
-                    
-                    // Clear table and stats
-                    document.getElementById('tableBody').innerHTML = '';
-                    document.getElementById('stats').innerHTML = '';
-                    
-                    // Show loading state
-                    document.getElementById('loading').style.display = 'block';
-                    document.getElementById('content').style.display = 'none';
-                    
-                    // Reload data
-                    loadAllData();
-                }
-            }
-        }
         
         function handleGoClick() {
             const walletTextarea = document.getElementById('walletAddresses');
